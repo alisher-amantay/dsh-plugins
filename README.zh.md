@@ -12,7 +12,6 @@
 - `@alisheramantay/dsh-goal-round-driver-delayed` — 带可取消节奏延迟的 goal 续行 driver 替代包。
 - `@alisheramantay/dsh-client-goal-extended` — 替换 Goal Client 插件，在 Web composer dock 中显示 Round 进度并编辑上限。
 - `@alisheramantay/dsh-client-chat-extended` — 替换 Chat Client 插件；当前台工具已报告具体工作时，隐藏通用模型活动状态。
-- `@alisheramantay/dsh-memorix-bundle` — Memorix Lite MCP profile layer。
 - `@alisheramantay/dsh-custom-bundle` — 为自定义发行版安装 Host 与 Web row。
 
 ## 开发

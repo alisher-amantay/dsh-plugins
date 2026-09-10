@@ -7,7 +7,6 @@
     { "path": "./packages/client-goal-extended" },
     { "path": "./packages/client-chat-extended" },
     { "path": "./packages/tool-pdf" },
-    { "path": "./packages/memorix-bundle" },
     { "path": "./packages/custom-bundle" }
   ]
 }

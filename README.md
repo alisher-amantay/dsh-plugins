@@ -12,7 +12,6 @@ This workspace contains independently publishable Cordis plugins and one opinion
 - `@alisheramantay/dsh-goal-round-driver-delayed` — replacement goal continuation driver with a cancellable cadence delay.
 - `@alisheramantay/dsh-client-goal-extended` — replaces the Goal Client plugin with round progress and a cap editor in the Web composer dock.
 - `@alisheramantay/dsh-client-chat-extended` — replaces the Chat Client plugin and suppresses generic model activity while a foreground tool already reports its work.
-- `@alisheramantay/dsh-memorix-bundle` — Memorix Lite MCP profile layer.
 - `@alisheramantay/dsh-custom-bundle` — installs the host and Web rows for the custom distribution.
 
 ## Development
