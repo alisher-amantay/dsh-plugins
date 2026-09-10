@@ -1,0 +1,27 @@
+{
+  "name": "@alisheramantay/dsh-plugins-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "type": "module",
+  "packageManager": "pnpm@11.7.0",
+  "engines": { "node": "^22.19.0 || >=24.0.0" },
+  "scripts": {
+    "build": "pnpm --recursive --if-present run build",
+    "test": "vitest run",
+    "pack:check": "pnpm --recursive --if-present run pack:check",
+    "publint": "for dir in packages/*; do publint \"$dir\" || exit; done",
+    "check": "pnpm run build && pnpm run test && pnpm run pack:check && pnpm run publint"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.1",
+    "jsdom": "^29.0.0",
+    "lightningcss": "^1.32.0",
+    "publint": "^0.3.21",
+    "tsdown": "^0.22.2",
+    "typescript": "^6.0.3",
+    "use-sync-external-store": "^1.2.0",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.8"
+  }
+}

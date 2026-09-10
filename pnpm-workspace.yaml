@@ -1,0 +1,25 @@
+packages:
+  - packages/*
+
+overrides:
+  '@deepseek-ai/cordis': link:../deepseek-harness/vendor/cordis
+  '@deepseek-ai/cordis-plugin-loader': link:../deepseek-harness/vendor/loader
+  '@deepseek-ai/dsh-agent': link:../deepseek-harness/packages/core/agent
+  '@deepseek-ai/dsh-agent-loop': link:../deepseek-harness/packages/core/agent-loop
+  '@deepseek-ai/dsh-app-boot': link:../deepseek-harness/packages/boot/app-boot
+  '@deepseek-ai/dsh-brand': link:../deepseek-harness/packages/util/brand
+  '@deepseek-ai/dsh-commands': link:../deepseek-harness/packages/interaction/commands
+  '@deepseek-ai/dsh-compaction-basic': link:../deepseek-harness/packages/compaction/compaction-basic
+  '@deepseek-ai/dsh-goal': link:../deepseek-harness/packages/goal/goal
+  '@deepseek-ai/dsh-jobs': link:../deepseek-harness/packages/jobs/jobs
+  '@deepseek-ai/dsh-jobs-local': link:../deepseek-harness/packages/jobs/jobs-local
+  '@deepseek-ai/dsh-llm': link:../deepseek-harness/packages/llm/llm
+  '@deepseek-ai/dsh-session': link:../deepseek-harness/packages/core/session
+  '@deepseek-ai/dsh-session-projection': link:../deepseek-harness/packages/session/session-projection
+  '@deepseek-ai/dsh-system-prompt': link:../deepseek-harness/packages/core/system-prompt
+  '@deepseek-ai/dsh-timeout': link:../deepseek-harness/packages/util/timeout
+  '@deepseek-ai/dsh-token-meter': link:../deepseek-harness/packages/llm/token-meter
+  '@deepseek-ai/dsh-tools': link:../deepseek-harness/packages/core/tools
+
+onlyBuiltDependencies:
+  - '@napi-rs/canvas'

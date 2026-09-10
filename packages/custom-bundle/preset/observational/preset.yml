@@ -1,0 +1,3 @@
+name: Observational Memory
+description: Full coding agent with session-local observations, reflections, exact evidence recall, and deterministic memory compaction.
+order: 2

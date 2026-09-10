@@ -1,0 +1,24 @@
+{
+  "name": "@alisheramantay/dsh-custom-bundle",
+  "description": "Opinionated DeepSeek Harness profile layer for Alisher Amantay's plugin set",
+  "version": "0.1.0",
+  "publishConfig": { "access": "public" },
+  "repository": { "type": "git", "url": "git+https://github.com/alisheramantay/dsh-plugins.git", "directory": "packages/custom-bundle" },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": { ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" }, "./cordis.patch.yml": "./cordis.patch.yml", "./preset/*": "./preset/*", "./package.json": "./package.json" },
+  "files": ["lib/index.js", "lib/types/**/*.d.ts", "cordis.patch.yml", "preset", "README*.md"],
+  "scripts": { "build": "tsc -b && tsdown", "pack:check": "pnpm pack --dry-run" },
+  "license": "MIT",
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
+  "dependencies": {
+    "@alisheramantay/dsh-client-chat-extended": "workspace:^",
+    "@alisheramantay/dsh-client-goal-extended": "workspace:^",
+    "@alisheramantay/dsh-goal-round-driver-delayed": "workspace:^",
+    "@alisheramantay/dsh-observational-memory": "workspace:^",
+    "@alisheramantay/dsh-tool-goal-extended": "workspace:^",
+    "@alisheramantay/dsh-tool-pdf": "workspace:^"
+  },
+  "peerDependencies": { "@deepseek-ai/cordis": "^4.0.2" }
+}

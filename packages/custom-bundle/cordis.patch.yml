@@ -1,0 +1,17 @@
+# Replace the host-global goal driver with the delayed implementation.
+- id: goal-round-driver
+  name: '@alisheramantay/dsh-goal-round-driver-delayed'
+  config:
+    continuationDelayMs: 15000
+
+# Add bounded PDF vision without replacing the stock filesystem tool package.
+- insert:
+    - id: tool-pdf
+      name: '@alisheramantay/dsh-tool-pdf'
+
+# Replace the stock Web Chat and goal rows while retaining stable row ids.
+- id: ui-chat
+  name: '@alisheramantay/dsh-client-chat-extended'
+
+- id: ui-goal
+  name: '@alisheramantay/dsh-client-goal-extended'

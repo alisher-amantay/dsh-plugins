@@ -1,0 +1,36 @@
+{
+  "name": "@alisheramantay/dsh-tool-pdf",
+  "description": "Bounded PDF page rasterization for DeepSeek Harness vision models",
+  "version": "0.1.0",
+  "publishConfig": { "access": "public" },
+  "repository": { "type": "git", "url": "git+https://github.com/alisheramantay/dsh-plugins.git", "directory": "packages/tool-pdf" },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": { ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" }, "./package.json": "./package.json" },
+  "files": ["lib/index.js", "lib/types/**/*.d.ts", "README*.md"],
+  "scripts": { "build": "tsc -b && tsdown", "test": "vitest run --root ../.. packages/tool-pdf/tests", "pack:check": "pnpm pack --dry-run" },
+  "license": "MIT",
+  "dependencies": {
+    "@deepseek-ai/schemastery": "^3.18.2",
+    "@napi-rs/canvas": "^1.0.8",
+    "pdfjs-dist": "^6.3.289"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/dsh-attachment": ">=0.1.2-alpha.5 <0.2.0",
+    "@deepseek-ai/dsh-fs": ">=0.1.2-alpha.5 <0.2.0",
+    "@deepseek-ai/dsh-llm": ">=0.1.2-alpha.5 <0.2.0",
+    "@deepseek-ai/dsh-sandbox": ">=0.1.2-alpha.5 <0.2.0",
+    "@deepseek-ai/dsh-tools": ">=0.1.2-alpha.5 <0.2.0",
+    "pdf-lib": "^1.17.1"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/dsh-attachment": ">=0.1.2-alpha.5 <0.2.0",
+    "@deepseek-ai/dsh-fs": ">=0.1.2-alpha.5 <0.2.0",
+    "@deepseek-ai/dsh-llm": ">=0.1.2-alpha.5 <0.2.0",
+    "@deepseek-ai/dsh-sandbox": ">=0.1.2-alpha.5 <0.2.0",
+    "@deepseek-ai/dsh-tools": ">=0.1.2-alpha.5 <0.2.0"
+  }
+}

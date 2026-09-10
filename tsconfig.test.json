@@ -1,0 +1,5 @@
+{
+  "extends": "../deepseek-harness/tsconfig.base.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["packages/*/src", "packages/*/tests"]
+}

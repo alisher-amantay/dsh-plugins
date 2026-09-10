@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/observational-memory" },
+    { "path": "./packages/tool-goal-extended" },
+    { "path": "./packages/goal-round-driver-delayed" },
+    { "path": "./packages/client-goal-extended" },
+    { "path": "./packages/client-chat-extended" },
+    { "path": "./packages/tool-pdf" },
+    { "path": "./packages/memorix-bundle" },
+    { "path": "./packages/custom-bundle" }
+  ]
+}
