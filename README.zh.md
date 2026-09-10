@@ -18,4 +18,4 @@
 
 运行 `pnpm install`，再运行 `pnpm run check`。开发期间，根 override 会从相邻的 `../deepseek-harness` checkout 链接三个尚未发布的扩展 API；发布包 manifest 只包含 semver peer range。请先发布匹配的 Harness 版本，再发布观察式记忆包。
 
-自定义 bundle 安装 profile 全局 row。观察式记忆 provider 与 goal 工具仍由 agent preset 贡献；启动会话前，把附带的 preset 模板复制到用户自有的 preset 中。
+自定义 bundle 会安装 profile 全局 row 与替换后的 preset roster。标准、PTC 与 Cordis 模式会自动获得观察式记忆和扩展 goal 工具；Minimal 保持不变。

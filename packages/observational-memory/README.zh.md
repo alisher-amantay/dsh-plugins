@@ -8,4 +8,4 @@ DeepSeek Harness 的会话本地观察式记忆。该 Cordis 服务扩展基础 
 
 该插件以 `ignorable: true` 写入 ledger 记录。未加载本包的 Harness 安装仍可忽略可选记忆 projection 并重建普通对话。确定性压缩摘要仍使用普通第一方 compaction 事件。
 
-完整 preset 模板见 `@alisheramantay/dsh-custom-bundle/preset/observational`。
+`@alisheramantay/dsh-custom-bundle` 会在标准、PTC 与 Cordis 模式中自动挂载该 provider，同时保持 Minimal 不变。

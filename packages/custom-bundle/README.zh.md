@@ -8,6 +8,4 @@
 dsh plugin --profile <name> add @alisheramantay/dsh-custom-bundle
 ```
 
-该 bundle 还附带 `preset/observational`。把该目录复制到 DSH 报告的可写 agent-preset 根目录，并在启动会话前验证挂载。该 preset 会以 `@alisheramantay` 包替换 stock goal 工具和 compaction provider，同时保留必需的隔离 compaction realm。
-
-Memorix 保持为独立 opt-in bundle，因为它需要外部可执行文件。
+该 bundle 会自动替换 preset roster。标准、PTC 与 Cordis 模式会在必需的隔离 compaction realm 中挂载观察式记忆和扩展 goal 工具。Minimal 模式保持不变且不挂载观察式记忆；无需选择或复制专用的 observational preset。

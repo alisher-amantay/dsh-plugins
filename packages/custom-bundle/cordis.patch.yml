@@ -1,17 +1,40 @@
+# Replace the stock preset roster with bundled standard, PTC, Cordis, and minimal modes.
+# The first three mount observational memory; minimal remains unchanged.
+- id: agent-presets
+  disabled: true
+
+- insert:
+    - id: agent-presets-custom
+      name: '@alisheramantay/dsh-custom-bundle'
+      config:
+        default: standard
+
 # Replace the host-global goal driver with the delayed implementation.
 - id: goal-round-driver
-  name: '@alisheramantay/dsh-goal-round-driver-delayed'
-  config:
-    continuationDelayMs: 15000
+  disabled: true
+
+- insert:
+    - id: goal-round-driver-delayed
+      name: '@alisheramantay/dsh-goal-round-driver-delayed'
+      config:
+        continuationDelayMs: 15000
 
 # Add bounded PDF vision without replacing the stock filesystem tool package.
 - insert:
     - id: tool-pdf
       name: '@alisheramantay/dsh-tool-pdf'
 
-# Replace the stock Web Chat and goal rows while retaining stable row ids.
+# Replace the stock Web Chat and Goal Client rows.
 - id: ui-chat
-  name: '@alisheramantay/dsh-client-chat-extended'
+  disabled: true
+
+- insert:
+    - id: ui-chat-extended
+      name: '@alisheramantay/dsh-client-chat-extended'
 
 - id: ui-goal
-  name: '@alisheramantay/dsh-client-goal-extended'
+  disabled: true
+
+- insert:
+    - id: ui-goal-extended
+      name: '@alisheramantay/dsh-client-goal-extended'

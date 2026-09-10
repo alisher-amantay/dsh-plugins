@@ -8,4 +8,4 @@ Mount it in an agent preset inside the same isolated `compaction` and `toolResul
 
 The plugin writes its ledger records with `ignorable: true`. A Harness installation that does not load this package can reconstruct the ordinary conversation while omitting the optional memory projection. Deterministic compacted summaries remain ordinary first-party compaction events.
 
-See `@alisheramantay/dsh-custom-bundle/preset/observational` for a complete preset template.
+`@alisheramantay/dsh-custom-bundle` mounts this provider automatically in Standard, PTC, and Cordis modes while leaving Minimal unchanged.

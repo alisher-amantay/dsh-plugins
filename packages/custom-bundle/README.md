@@ -8,6 +8,4 @@ The opinionated profile layer for this plugin set. It replaces the Host goal-rou
 dsh plugin --profile <name> add @alisheramantay/dsh-custom-bundle
 ```
 
-The bundle also ships `preset/observational`. Copy that directory to the writable agent-preset root reported by DSH, then mount-validate it before starting a session. The preset replaces the stock goal tool and compaction provider with the `@alisheramantay` packages while preserving the required isolated compaction realm.
-
-Memorix remains a separate opt-in bundle because it requires an external executable.
+The bundle replaces the preset roster automatically. Standard, PTC, and Cordis modes mount observational memory and the extended goal tools in the required isolated compaction realm. Minimal mode remains unchanged and does not mount observational memory; no dedicated observational preset needs to be selected or copied.

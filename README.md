@@ -18,4 +18,4 @@ This workspace contains independently publishable Cordis plugins and one opinion
 
 Run `pnpm install`, then `pnpm run check`. During development, the root override links the three unreleased extension APIs from a sibling `../deepseek-harness` checkout; published package manifests contain only semver peer ranges. Publish the matching Harness release before publishing observational memory.
 
-The custom bundle installs profile-global rows. The observational-memory provider and goal tools remain agent-preset contributions; copy the supplied preset template into a user-owned preset before starting a session.
+The custom bundle installs profile-global rows and a replacement preset roster. Standard, PTC, and Cordis modes receive observational memory and extended goal tools automatically; Minimal remains unchanged.

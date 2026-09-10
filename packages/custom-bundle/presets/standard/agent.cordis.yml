@@ -1,4 +1,4 @@
-# The observational-memory agent preset template, mounted once per process.
+# The `standard` agent preset: the full coding agent, mounted once per process.
 #
 # This file is an AGENT-PLANE composition. The roster mounts it ONCE under a
 # standing scope; every session naming it joins by scope parentage, so the
@@ -126,7 +126,7 @@
 # ── compaction ──────────────────────────────────────────────────────────────
 
 # `observational-memory` extends the basic engine and reads `toolResultPrune`
-# through `ctx.get`, so the pruner must share this realm rather than sit outside it.
+# through `ctx.get`, so the pruner must share this realm.
 #
 # `tokenMeter` is deliberately NOT in this realm: the meter stays on the HOST
 # plane, and the rows here resolve that one instance. It takes no configuration,
