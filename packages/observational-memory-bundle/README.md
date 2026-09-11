@@ -1,6 +1,6 @@
 # @alisheramantay/dsh-observational-memory-bundle
 
-This bundle installs [`@alisheramantay/dsh-observational-memory`](../observational-memory) as the default compaction engine for DeepSeek Harness.
+This bundle installs [`@alisheramantay/dsh-observational-memory`](https://www.npmjs.com/package/@alisheramantay/dsh-observational-memory) as the default compaction engine for DeepSeek Harness.
 
 The engine is a port of [pi-observational-memory](https://github.com/elpapi42/pi-observational-memory).
 

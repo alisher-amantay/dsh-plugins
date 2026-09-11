@@ -1,6 +1,6 @@
 # @alisheramantay/dsh-observational-memory-bundle
 
-该 bundle 将 [`@alisheramantay/dsh-observational-memory`](../observational-memory) 安装为 DeepSeek Harness 的默认 compaction engine。
+该 bundle 将 [`@alisheramantay/dsh-observational-memory`](https://www.npmjs.com/package/@alisheramantay/dsh-observational-memory) 安装为 DeepSeek Harness 的默认 compaction engine。
 
 该引擎是 [pi-observational-memory](https://github.com/elpapi42/pi-observational-memory) 的移植版本。
 
