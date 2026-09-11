@@ -17,7 +17,7 @@
     "@alisheramantay/dsh-client-chat-extended": "workspace:^",
     "@alisheramantay/dsh-client-goal-extended": "workspace:^",
     "@alisheramantay/dsh-goal-round-driver-delayed": "workspace:^",
-    "@alisheramantay/dsh-observational-memory": "workspace:^",
+    "@alisher-amantay/dsh-observational-memory": "workspace:^",
     "@alisheramantay/dsh-tool-goal-extended": "workspace:^",
     "@alisheramantay/dsh-tool-pdf": "workspace:^"
   },

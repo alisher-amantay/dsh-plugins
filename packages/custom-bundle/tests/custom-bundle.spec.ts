@@ -18,7 +18,7 @@ function read(relativePath: string): string {
 describe('custom distribution composition', () => {
   it.each(['standard', 'ptc', 'cordis'])('mounts observational memory in %s mode', (preset) => {
     const composition = read(`presets/${preset}/agent.cordis.yml`)
-    expect(composition).toContain("name: '@alisheramantay/dsh-observational-memory'")
+    expect(composition).toContain("name: '@alisher-amantay/dsh-observational-memory'")
     expect(composition).toContain("name: '@alisheramantay/dsh-tool-goal-extended'")
     expect(composition).not.toContain("name: '@deepseek-ai/dsh-compaction-basic'")
   })

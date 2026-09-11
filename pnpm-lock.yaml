@@ -231,6 +231,9 @@ importers:
 
   packages/custom-bundle:
     dependencies:
+      '@alisher-amantay/dsh-observational-memory':
+        specifier: workspace:^
+        version: link:../observational-memory
       '@alisheramantay/dsh-client-chat-extended':
         specifier: workspace:^
         version: link:../client-chat-extended
@@ -240,9 +243,6 @@ importers:
       '@alisheramantay/dsh-goal-round-driver-delayed':
         specifier: workspace:^
         version: link:../goal-round-driver-delayed
-      '@alisheramantay/dsh-observational-memory':
-        specifier: workspace:^
-        version: link:../observational-memory
       '@alisheramantay/dsh-tool-goal-extended':
         specifier: workspace:^
         version: link:../tool-goal-extended
@@ -347,7 +347,7 @@ importers:
 
   packages/observational-memory-bundle:
     dependencies:
-      '@alisheramantay/dsh-observational-memory':
+      '@alisher-amantay/dsh-observational-memory':
         specifier: workspace:^
         version: link:../observational-memory
       '@deepseek-ai/cordis':

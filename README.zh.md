@@ -2,14 +2,14 @@
 
 [English](README.md) | 中文
 
-`@alisheramantay/dsh-observational-memory` 是 [pi-observational-memory](https://github.com/elpapi42/pi-observational-memory) 的移植版本。
+`@alisher-amantay/dsh-observational-memory` 是 [pi-observational-memory](https://github.com/elpapi42/pi-observational-memory) 的移植版本。
 
 本 workspace 包含可独立发布的 Cordis 插件与 DeepSeek Harness bundles。产品行为保留在 `@alisheramantay/*` 包中；上游 `@deepseek-ai/*` 包只公开可复用的扩展 API。
 
 ## 包
 
-- `@alisheramantay/dsh-observational-memory` — 会话本地的观察、反思、证据召回与确定性 compaction。
-- `@alisheramantay/dsh-observational-memory-bundle` — 在原本已启用 compaction 的所有模式中将观察式记忆安装为默认引擎。
+- `@alisher-amantay/dsh-observational-memory` — 会话本地的观察、反思、证据召回与确定性 compaction。
+- `@alisher-amantay/dsh-observational-memory-bundle` — 在原本已启用 compaction 的所有模式中将观察式记忆安装为默认引擎。
 - `@alisheramantay/dsh-tool-pdf` — 通过专用 `read_pdf` 工具进行有界 PDF 页面栅格化。
 - `@alisheramantay/dsh-tool-goal-extended` — 扩展面向模型的 goal 工具，可暂停到自有后台任务结束。
 - `@alisheramantay/dsh-goal-round-driver-delayed` — 带可取消节奏延迟的 goal 续行 driver 替代包。

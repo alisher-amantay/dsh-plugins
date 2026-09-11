@@ -41,7 +41,7 @@ describe('observational-memory distribution bundle', () => {
 
   it.each(['standard', 'ptc', 'cordis'])('replaces Basic Compaction in %s mode', (preset) => {
     const composition = read(`presets/${preset}/agent.cordis.yml`)
-    expect(composition).toContain("name: '@alisheramantay/dsh-observational-memory'")
+    expect(composition).toContain("name: '@alisher-amantay/dsh-observational-memory'")
     expect(composition).not.toContain("name: '@deepseek-ai/dsh-compaction-basic'")
     expect(composition).toContain('compaction: true')
     expect(composition).toContain('toolResultPruner: true')
@@ -69,8 +69,10 @@ describe('observational-memory distribution bundle', () => {
 
   it('depends on no unrelated custom plugin', () => {
     const manifest = JSON.parse(read('package.json')) as { dependencies: Record<string, string> }
-    const customDependencies = Object.keys(manifest.dependencies).filter(name => name.startsWith('@alisheramantay/'))
-    expect(customDependencies).toEqual(['@alisheramantay/dsh-observational-memory'])
+    expect(Object.keys(manifest.dependencies).sort()).toEqual([
+      '@alisher-amantay/dsh-observational-memory',
+      '@deepseek-ai/dsh-agent-presets',
+    ])
   })
 
   it('publishes the four built-in preset ids', async () => {
@@ -109,7 +111,7 @@ describe('observational-memory distribution bundle', () => {
     expect(warnings).toEqual([])
     expect(result.find(entry => entry.id === 'agent-presets')?.disabled).toBe(true)
     expect(result.find(entry => entry.id === 'agent-presets-observational-memory')?.name)
-      .toBe('@alisheramantay/dsh-observational-memory-bundle')
+      .toBe('@alisher-amantay/dsh-observational-memory-bundle')
     expect(result.find(entry => entry.id === 'goal-round-driver')?.disabled).not.toBe(true)
     expect(result.find(entry => entry.id === 'ui-chat')?.disabled).not.toBe(true)
   })

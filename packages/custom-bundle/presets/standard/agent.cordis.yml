@@ -142,7 +142,7 @@
     toolResultPruner: true
   config:
     - id: observational-memory
-      name: '@alisheramantay/dsh-observational-memory'
+      name: '@alisher-amantay/dsh-observational-memory'
       config:
         auto: true
         thresholdRatio: 0.99

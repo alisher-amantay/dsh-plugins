@@ -1,6 +1,6 @@
-# @alisheramantay/dsh-observational-memory-bundle
+# @alisher-amantay/dsh-observational-memory-bundle
 
-This bundle installs [`@alisheramantay/dsh-observational-memory`](https://www.npmjs.com/package/@alisheramantay/dsh-observational-memory) as the default compaction engine for DeepSeek Harness.
+This bundle installs [`@alisher-amantay/dsh-observational-memory`](https://www.npmjs.com/package/@alisher-amantay/dsh-observational-memory) as the default compaction engine for DeepSeek Harness.
 
 The engine is a port of [pi-observational-memory](https://github.com/elpapi42/pi-observational-memory).
 
@@ -16,7 +16,7 @@ Requires a compatible DSH 0.1.2 release (`>=0.1.2-alpha.6 <0.1.3`; current `0.1.
 Install the bundle into the DSH profile you use:
 
 ```sh
-dsh plugin --profile <profile-name> add @alisheramantay/dsh-observational-memory-bundle
+dsh plugin --profile <profile-name> add @alisher-amantay/dsh-observational-memory-bundle
 ```
 
 Inspect the composed configuration and restart the profile:
@@ -31,5 +31,5 @@ Adding, updating, or removing this bundle takes effect after restarting the prof
 ## Remove
 
 ```sh
-dsh plugin --profile <profile-name> remove @alisheramantay/dsh-observational-memory-bundle
+dsh plugin --profile <profile-name> remove @alisher-amantay/dsh-observational-memory-bundle
 ```

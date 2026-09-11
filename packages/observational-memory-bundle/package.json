@@ -1,5 +1,5 @@
 {
-  "name": "@alisheramantay/dsh-observational-memory-bundle",
+  "name": "@alisher-amantay/dsh-observational-memory-bundle",
   "description": "DeepSeek Harness profile bundle that makes observational memory the default compaction engine",
   "version": "0.1.0",
   "publishConfig": { "access": "public" },
@@ -27,7 +27,7 @@
   "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
   "dependencies": {
     "@deepseek-ai/dsh-agent-presets": ">=0.1.2-alpha.6 <0.1.3",
-    "@alisheramantay/dsh-observational-memory": "workspace:^"
+    "@alisher-amantay/dsh-observational-memory": "workspace:^"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.2"

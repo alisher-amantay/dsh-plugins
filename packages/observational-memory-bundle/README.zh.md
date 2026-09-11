@@ -1,6 +1,6 @@
-# @alisheramantay/dsh-observational-memory-bundle
+# @alisher-amantay/dsh-observational-memory-bundle
 
-该 bundle 将 [`@alisheramantay/dsh-observational-memory`](https://www.npmjs.com/package/@alisheramantay/dsh-observational-memory) 安装为 DeepSeek Harness 的默认 compaction engine。
+该 bundle 将 [`@alisher-amantay/dsh-observational-memory`](https://www.npmjs.com/package/@alisher-amantay/dsh-observational-memory) 安装为 DeepSeek Harness 的默认 compaction engine。
 
 该引擎是 [pi-observational-memory](https://github.com/elpapi42/pi-observational-memory) 的移植版本。
 
@@ -16,7 +16,7 @@
 将 bundle 安装到所使用的 DSH profile：
 
 ```sh
-dsh plugin --profile <profile-name> add @alisheramantay/dsh-observational-memory-bundle
+dsh plugin --profile <profile-name> add @alisher-amantay/dsh-observational-memory-bundle
 ```
 
 检查组合后的配置并重启 profile：
@@ -31,5 +31,5 @@ dsh --profile <profile-name>
 ## 移除
 
 ```sh
-dsh plugin --profile <profile-name> remove @alisheramantay/dsh-observational-memory-bundle
+dsh plugin --profile <profile-name> remove @alisher-amantay/dsh-observational-memory-bundle
 ```

@@ -5,6 +5,6 @@
 
 - insert:
     - id: agent-presets-observational-memory
-      name: '@alisheramantay/dsh-observational-memory-bundle'
+      name: '@alisher-amantay/dsh-observational-memory-bundle'
       config:
         default: standard

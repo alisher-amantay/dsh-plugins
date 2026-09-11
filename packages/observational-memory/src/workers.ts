@@ -83,7 +83,7 @@ function renderSource(entries: readonly SourceEntry[]): string {
 function workerInputTokens(system: string, input: string): number {
   const message = createUserMessage({
     content: [{ type: 'text', text: input }],
-    source: { kind: 'plugin', plugin: '@alisheramantay/dsh-observational-memory' },
+    source: { kind: 'plugin', plugin: '@alisher-amantay/dsh-observational-memory' },
   })
   return estimateContent([{ type: 'text', text: system }]) + estimateMessage(message)
 }
@@ -137,7 +137,7 @@ async function runJson(
   }
   const messages: Message[] = [createUserMessage({
     content: [{ type: 'text', text: input }],
-    source: { kind: 'plugin', plugin: '@alisheramantay/dsh-observational-memory' },
+    source: { kind: 'plugin', plugin: '@alisher-amantay/dsh-observational-memory' },
   })]
   session.append('observational-memory/worker-request', {
     worker,

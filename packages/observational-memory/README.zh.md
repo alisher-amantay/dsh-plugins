@@ -1,4 +1,4 @@
-# @alisheramantay/dsh-observational-memory
+# @alisher-amantay/dsh-observational-memory
 
 [English](README.md) | 中文
 
