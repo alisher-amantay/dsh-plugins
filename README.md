@@ -2,11 +2,14 @@
 
 English | [中文](README.zh.md)
 
+`@alisheramantay/dsh-observational-memory` is a port of [pi-observational-memory](https://github.com/elpapi42/pi-observational-memory).
+
 This workspace contains independently publishable Cordis plugins and one opinionated DeepSeek Harness bundle. Product behavior stays in `@alisheramantay/*` packages; the upstream `@deepseek-ai/*` packages expose only reusable extension APIs.
 
 ## Packages
 
 - `@alisheramantay/dsh-observational-memory` — session-local observations, reflections, evidence recall, and deterministic compaction.
+- `@alisheramantay/dsh-observational-memory-bundle` — installs observational memory as the default engine in every mode that already enables compaction.
 - `@alisheramantay/dsh-tool-pdf` — bounded PDF page rasterization through a dedicated `read_pdf` tool.
 - `@alisheramantay/dsh-tool-goal-extended` — extends the model-facing goal tools with suspension until an owned background job settles.
 - `@alisheramantay/dsh-goal-round-driver-delayed` — replacement goal continuation driver with a cancellable cadence delay.

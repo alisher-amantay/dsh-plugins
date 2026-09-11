@@ -3,7 +3,7 @@
   "description": "Race-fenced same-session goal-round driver with configurable cadence",
   "version": "0.1.0",
   "publishConfig": { "access": "public" },
-  "repository": { "type": "git", "url": "git+https://github.com/alisheramantay/dsh-plugins.git", "directory": "packages/goal-round-driver-delayed" },
+  "repository": { "type": "git", "url": "git+https://github.com/alisher-amantay/dsh-plugins.git", "directory": "packages/goal-round-driver-delayed" },
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",

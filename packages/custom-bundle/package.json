@@ -3,7 +3,7 @@
   "description": "Opinionated DeepSeek Harness profile layer for Alisher Amantay's plugin set",
   "version": "0.1.0",
   "publishConfig": { "access": "public" },
-  "repository": { "type": "git", "url": "git+https://github.com/alisheramantay/dsh-plugins.git", "directory": "packages/custom-bundle" },
+  "repository": { "type": "git", "url": "git+https://github.com/alisher-amantay/dsh-plugins.git", "directory": "packages/custom-bundle" },
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",

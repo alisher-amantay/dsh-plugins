@@ -5,7 +5,7 @@
   "publishConfig": { "access": "public" },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alisheramantay/dsh-plugins.git",
+    "url": "git+https://github.com/alisher-amantay/dsh-plugins.git",
     "directory": "packages/observational-memory"
   },
   "type": "module",

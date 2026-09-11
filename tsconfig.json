@@ -7,6 +7,7 @@
     { "path": "./packages/client-goal-extended" },
     { "path": "./packages/client-chat-extended" },
     { "path": "./packages/tool-pdf" },
-    { "path": "./packages/custom-bundle" }
+    { "path": "./packages/custom-bundle" },
+    { "path": "./packages/observational-memory-bundle" }
   ]
 }

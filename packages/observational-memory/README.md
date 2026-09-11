@@ -2,6 +2,8 @@
 
 English | [中文](README.zh.md)
 
+This plugin is a port of [pi-observational-memory](https://github.com/elpapi42/pi-observational-memory).
+
 Session-local observational memory for DeepSeek Harness. The Cordis service extends the basic compaction engine, records source-backed observations and reflections, supplies `/memory-status` and `/memory-view`, and registers `observational_memory_recall` for exact evidence paging.
 
 Mount it in an agent preset inside the same isolated `compaction` and `toolResultPruner` realm as the compact command and result pruner. Do not mount it beside another compaction provider.

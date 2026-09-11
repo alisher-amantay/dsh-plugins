@@ -1,0 +1,35 @@
+{
+  "name": "@alisheramantay/dsh-observational-memory-bundle",
+  "description": "DeepSeek Harness profile bundle that makes observational memory the default compaction engine",
+  "version": "0.1.0",
+  "publishConfig": { "access": "public" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alisher-amantay/dsh-plugins.git",
+    "directory": "packages/observational-memory-bundle"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" },
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./presets/*": "./presets/*",
+    "./package.json": "./package.json"
+  },
+  "files": ["lib/index.js", "lib/types/**/*.d.ts", "cordis.patch.yml", "presets", "README*.md"],
+  "scripts": {
+    "build": "tsc -b && tsdown",
+    "test": "vitest run --root ../.. packages/observational-memory-bundle/tests",
+    "pack:check": "pnpm pack --dry-run"
+  },
+  "license": "MIT",
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
+  "dependencies": {
+    "@deepseek-ai/dsh-agent-presets": ">=0.1.2-alpha.5 <0.2.0",
+    "@alisheramantay/dsh-observational-memory": "workspace:^"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2"
+  }
+}

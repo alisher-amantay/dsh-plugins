@@ -1,0 +1,10 @@
+# Replace the stock preset roster with variants that use observational memory
+# wherever the shipped preset already enables compaction. Minimal stays minimal.
+- id: agent-presets
+  disabled: true
+
+- insert:
+    - id: agent-presets-observational-memory
+      name: '@alisheramantay/dsh-observational-memory-bundle'
+      config:
+        default: standard
