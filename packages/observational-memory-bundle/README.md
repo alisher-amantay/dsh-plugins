@@ -9,6 +9,8 @@ The engine is a port of [pi-observational-memory](https://github.com/elpapi42/pi
 
 It replaces Basic Compaction in every shipped mode that already enables compaction: Standard, PTC, and Cordis. Minimal intentionally remains unchanged because it does not enable context compaction.
 
+Requires a compatible DSH 0.1.2 release (`>=0.1.2-alpha.6 <0.2.0`; current `0.1.2-rc.1` is supported).
+
 ## Install
 
 Install the bundle into the DSH profile you use:

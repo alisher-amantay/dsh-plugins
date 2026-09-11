@@ -9,6 +9,8 @@
 
 它会在原本已启用 compaction 的所有内置模式（标准、PTC 与 Cordis）中替换 Basic Compaction。Minimal 原本不启用上下文压缩，因此保持不变。
 
+需要兼容的 DSH 0.1.2 版本（`>=0.1.2-alpha.6 <0.2.0`；支持当前的 `0.1.2-rc.1`）。
+
 ## 安装
 
 将 bundle 安装到所使用的 DSH profile：
