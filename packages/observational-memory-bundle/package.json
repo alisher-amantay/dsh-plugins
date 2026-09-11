@@ -26,7 +26,7 @@
   "license": "MIT",
   "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
   "dependencies": {
-    "@deepseek-ai/dsh-agent-presets": ">=0.1.2-alpha.5 <0.2.0",
+    "@deepseek-ai/dsh-agent-presets": ">=0.1.2-alpha.6 <0.2.0",
     "@alisheramantay/dsh-observational-memory": "workspace:^"
   },
   "peerDependencies": {

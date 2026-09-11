@@ -354,7 +354,7 @@ importers:
         specifier: link:../../../deepseek-harness/vendor/cordis
         version: link:../../../deepseek-harness/vendor/cordis
       '@deepseek-ai/dsh-agent-presets':
-        specifier: '>=0.1.2-alpha.5 <0.2.0'
+        specifier: '>=0.1.2-alpha.6 <0.2.0'
         version: 0.1.2-rc.1(b6d5a80ef539bc683ab787a39d2dd576)
 
   packages/tool-goal-extended:
