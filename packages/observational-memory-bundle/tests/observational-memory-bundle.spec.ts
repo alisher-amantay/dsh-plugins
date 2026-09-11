@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
@@ -31,6 +31,14 @@ function withoutCompaction(composition: string): string {
 }
 
 describe('observational-memory distribution bundle', () => {
+  it('snapshots every preset in the compatible shipped roster', () => {
+    const directoryIds = (root: string): string[] => readdirSync(root, { withFileTypes: true })
+      .filter(entry => entry.isDirectory())
+      .map(entry => entry.name)
+      .sort()
+    expect(directoryIds(resolve(packageRoot, 'presets'))).toEqual(directoryIds(shippedPresetRoot))
+  })
+
   it.each(['standard', 'ptc', 'cordis'])('replaces Basic Compaction in %s mode', (preset) => {
     const composition = read(`presets/${preset}/agent.cordis.yml`)
     expect(composition).toContain("name: '@alisheramantay/dsh-observational-memory'")
