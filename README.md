@@ -4,7 +4,7 @@ English | [中文](README.zh.md)
 
 `@alisheramantay/dsh-observational-memory` is a port of [pi-observational-memory](https://github.com/elpapi42/pi-observational-memory).
 
-This workspace contains independently publishable Cordis plugins and one opinionated DeepSeek Harness bundle. Product behavior stays in `@alisheramantay/*` packages; the upstream `@deepseek-ai/*` packages expose only reusable extension APIs.
+This workspace contains independently publishable Cordis plugins and DeepSeek Harness bundles. Product behavior stays in `@alisheramantay/*` packages; the upstream `@deepseek-ai/*` packages expose only reusable extension APIs.
 
 ## Packages
 

@@ -4,7 +4,7 @@
 
 `@alisheramantay/dsh-observational-memory` 是 [pi-observational-memory](https://github.com/elpapi42/pi-observational-memory) 的移植版本。
 
-本 workspace 包含可独立发布的 Cordis 插件与一个有明确取舍的 DeepSeek Harness bundle。产品行为保留在 `@alisheramantay/*` 包中；上游 `@deepseek-ai/*` 包只公开可复用的扩展 API。
+本 workspace 包含可独立发布的 Cordis 插件与 DeepSeek Harness bundles。产品行为保留在 `@alisheramantay/*` 包中；上游 `@deepseek-ai/*` 包只公开可复用的扩展 API。
 
 ## 包
 
