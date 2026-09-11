@@ -4,6 +4,9 @@
 
 该引擎是 [pi-observational-memory](https://github.com/elpapi42/pi-observational-memory) 的移植版本。
 
+> [!IMPORTANT]
+> 请安装此精简 bundle **而不是**同时安装 `@alisheramantay/dsh-custom-bundle`。两者都会替换 profile 的 preset-roster provider，属于互斥的发行方案。
+
 它会在原本已启用 compaction 的所有内置模式（标准、PTC 与 Cordis）中替换 Basic Compaction。Minimal 原本不启用上下文压缩，因此保持不变。
 
 ## 安装

@@ -4,6 +4,9 @@ This bundle installs [`@alisheramantay/dsh-observational-memory`](../observation
 
 The engine is a port of [pi-observational-memory](https://github.com/elpapi42/pi-observational-memory).
 
+> [!IMPORTANT]
+> Install this focused bundle **instead of**, not alongside, `@alisheramantay/dsh-custom-bundle`. Both replace the profile's preset-roster provider and are intentionally alternative distributions.
+
 It replaces Basic Compaction in every shipped mode that already enables compaction: Standard, PTC, and Cordis. Minimal intentionally remains unchanged because it does not enable context compaction.
 
 ## Install
