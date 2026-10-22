@@ -67,6 +67,7 @@ describe('observational compaction Loader composition', () => {
     session.append('assistant/message', {
       turn: 1,
       step: 1,
+      stream: [],
       message: createAssistantMessage({
         content: [{ type: 'text', text: 'Fact preserved.' }],
         source: { provider: 'test', model: 'chat' },

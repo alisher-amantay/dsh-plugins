@@ -3,7 +3,7 @@ import { z } from 'zod'
 import type { Context } from '@deepseek-ai/cordis'
 import { BlockAssembler, createUserMessage } from '@deepseek-ai/dsh-llm'
 import type { ContentBlock, GenerateOptions, Message } from '@deepseek-ai/dsh-llm'
-import { SessionSeq } from '@deepseek-ai/dsh-session'
+import { appendPluginRecord, SessionSeq } from '@deepseek-ai/dsh-session'
 import type { Session } from '@deepseek-ai/dsh-session'
 import { estimateContent, estimateMessage } from '@deepseek-ai/dsh-token-meter'
 import { deadline } from '@deepseek-ai/dsh-timeout'
@@ -16,9 +16,10 @@ import type {
   Reflection,
   ReflectionId,
 } from './types.ts'
+import { OBSERVATIONAL_MEMORY_SOURCE_KIND } from './types.ts'
 import { activeObservations } from './projection.ts'
 
-const OBSERVER_SYSTEM = 'Record concrete observations from the supplied session messages. Return JSON only: {"observations":[{"content":"single-line factual event","relevance":"low|medium|high|critical","sourceSeqs":[0]}]}. Cite only supplied seq values. Preserve decisions, corrections, constraints, findings, failures, and completed outcomes. Omit routine acknowledgements and guesses.'
+const OBSERVER_SYSTEM = 'Record concrete observations from the supplied session messages. Return JSON only: {"observations":[{"content":"single-line factual event","relevance":"low|medium|high|critical","sourceSeqs":[0]}]}. Cite only supplied seq values. Preserve decisions, corrections, constraints, findings, failures, and completed outcomes. Omit routine acknowledgements and guesses. Relevance ranks trimming priority: default to medium, use high only for a constraint, decision, or correction still in force, and critical only for something that must never be lost; keep high and critical under a tenth of what you record. Record one observation per fact: restate nothing, and when a fact changes record the correction instead of repeating the superseded version. A message may contain an observational-memory omission marker; treat that span as unseen and do not invent it.'
 const REFLECTOR_SYSTEM = 'Distill durable conclusions from active observations. Return JSON only: {"reflections":[{"content":"single-line durable fact","supportingObservationIds":["id"]}]}. Cite only supplied observation ids. Emit an empty array when no new durable conclusion is justified.'
 const DROPPER_SYSTEM = 'Select active observations that are safely redundant, superseded, obsolete, or fully preserved by reflections. Return JSON only: {"observationIds":["id"]}. Cite only supplied active ids and prefer retaining high and critical evidence.'
 
@@ -27,7 +28,7 @@ const observerOutput = z.object({
     content: z.string().trim().min(1).max(1000),
     relevance: z.enum(['low', 'medium', 'high', 'critical']),
     sourceSeqs: z.array(z.number().int().nonnegative()).min(1).max(32),
-  }).strict()).max(32),
+  }).strict()).max(64),
 }).strict()
 
 const reflectorOutput = z.object({
@@ -83,9 +84,123 @@ function renderSource(entries: readonly SourceEntry[]): string {
 function workerInputTokens(system: string, input: string): number {
   const message = createUserMessage({
     content: [{ type: 'text', text: input }],
-    source: { kind: 'plugin', plugin: '@alisher-amantay/dsh-observational-memory' },
+    source: { kind: OBSERVATIONAL_MEMORY_SOURCE_KIND },
   })
   return estimateContent([{ type: 'text', text: system }]) + estimateMessage(message)
+}
+
+function observerInputFits(entries: readonly SourceEntry[], inputMaxTokens: number): boolean {
+  return workerInputTokens(OBSERVER_SYSTEM, renderSource(entries)) <= inputMaxTokens
+}
+
+function boundExcerpt(text: string, maxChars: number): string {
+  if (text.length <= maxChars) return text
+  if (maxChars <= 0) return ''
+  const prefix = '… [observational-memory omitted '
+  const suffix = ' chars] …'
+  let best = `…[omitted ${String(text.length)}]`.slice(0, maxChars)
+  let low = 0
+  let high = text.length
+  while (low <= high) {
+    const keep = Math.floor((low + high) / 2)
+    const head = Math.ceil(keep / 2)
+    const tail = keep - head
+    const marker = `${prefix}${String(text.length - keep)}${suffix}`
+    const excerpt = `${text.slice(0, head)}${marker}${tail > 0 ? text.slice(text.length - tail) : ''}`
+    if (excerpt.length <= maxChars) {
+      best = excerpt
+      low = keep + 1
+    } else {
+      high = keep - 1
+    }
+  }
+  return best
+}
+
+function excerptBlock(block: ContentBlock, maxChars: number): ContentBlock {
+  switch (block.type) {
+    case 'text':
+    case 'reasoning':
+      return { ...block, text: boundExcerpt(block.text, maxChars) }
+    case 'tool-call':
+      return {
+        ...block,
+        name: boundExcerpt(block.name, maxChars),
+        arguments: boundExcerpt(block.arguments, maxChars),
+      }
+    case 'image':
+    case 'file':
+      return { type: 'text', text: `[observational-memory omitted ${block.type} block]` }
+    default:
+      return { type: 'text', text: '[observational-memory omitted block]' }
+  }
+}
+
+function longestText(blocks: readonly ContentBlock[]): number {
+  let longest = 0
+  for (const block of blocks) {
+    switch (block.type) {
+      case 'text':
+      case 'reasoning':
+        longest = Math.max(longest, block.text.length)
+        break
+      case 'tool-call':
+        longest = Math.max(longest, block.name.length, block.arguments.length)
+        break
+      default:
+        break
+    }
+  }
+  return longest
+}
+
+function excerptEntry(entry: SourceEntry, maxChars: number): SourceEntry {
+  return {
+    ...entry,
+    message: {
+      ...entry.message,
+      content: entry.message.content.map(block => excerptBlock(block, maxChars)),
+    },
+  }
+}
+
+function collapseEntry(entry: SourceEntry): SourceEntry {
+  return {
+    ...entry,
+    message: {
+      ...entry.message,
+      content: [{
+        type: 'text',
+        text: `[observational-memory omitted ${entry.message.role} message of ${String(entry.tokens)} estimated tokens]`,
+      }],
+    },
+  }
+}
+
+/**
+ * Keep one source message inside the observer input budget.
+ * A compaction checkpoint or tool result is one derived message and cannot be
+ * split across calls. Excerpting its head and tail, instead of refusing the
+ * call, is what lets coverage move past it.
+ */
+function fitObserverEntry(entry: SourceEntry, inputMaxTokens: number): SourceEntry {
+  if (observerInputFits([entry], inputMaxTokens)) return entry
+  let low = 0
+  let high = longestText(entry.message.content)
+  let fitted: SourceEntry | undefined
+  while (low <= high) {
+    const maxChars = Math.floor((low + high) / 2)
+    const candidate = excerptEntry(entry, maxChars)
+    if (observerInputFits([candidate], inputMaxTokens)) {
+      fitted = candidate
+      low = maxChars + 1
+    } else {
+      high = maxChars - 1
+    }
+  }
+  if (fitted !== undefined) return fitted
+  const collapsed = collapseEntry(entry)
+  return observerInputFits([collapsed], inputMaxTokens) ? collapsed : entry
 }
 
 function takeObserverEntries(
@@ -93,16 +208,68 @@ function takeObserverEntries(
   sourceMaxTokens: number,
   inputMaxTokens: number,
 ): SourceEntry[] {
-  const selected: SourceEntry[] = []
-  let sourceTokens = 0
-  for (const entry of entries) {
+  const first = entries[0]
+  if (first === undefined) return []
+  // The oldest message is mandatory. Leaving it unselected used to throw, and
+  // every later trigger retried the same message until coverage froze.
+  const selected = [fitObserverEntry(first, inputMaxTokens)]
+  let sourceTokens = first.tokens
+  for (const entry of entries.slice(1)) {
+    if (sourceTokens + entry.tokens > sourceMaxTokens) break
     const candidate = [...selected, entry]
-    if (sourceTokens + entry.tokens > sourceMaxTokens
-      || workerInputTokens(OBSERVER_SYSTEM, renderSource(candidate)) > inputMaxTokens) break
+    if (!observerInputFits(candidate, inputMaxTokens)) break
     selected.push(entry)
     sourceTokens += entry.tokens
   }
   return selected
+}
+
+function recordSkipped(session: Session, entry: SourceEntry, content: string): void {
+  const sourceSeqs = [entry.seq]
+  appendPluginRecord(session, 'plugin:observational-memory/observations-recorded', {
+    observations: [{
+      id: observationId({ content, sourceSeqs }),
+      content,
+      timestamp: new Date(entry.time).toISOString().slice(0, 16).replace('T', ' '),
+      relevance: 'low',
+      sourceSeqs,
+      tokenCount: Math.max(1, Math.ceil(content.length / 4)),
+    }],
+    coversUpToSeq: entry.seq,
+  })
+}
+
+function recordUnfittable(session: Session, entry: SourceEntry): void {
+  recordSkipped(session, entry, `Source seq ${String(entry.seq)} exceeded the observer input bound and was skipped.`)
+}
+
+function recordFailed(session: Session, entry: SourceEntry, reason: string): void {
+  const detail = reason.replaceAll(/\s+/g, ' ').trim().slice(0, 160)
+  recordSkipped(session, entry, `Source seq ${String(entry.seq)} was skipped after the observer failed (${detail}).`)
+}
+
+/**
+ * Recover a truncated observer object. A checkpoint excerpt often makes the
+ * model hit the output cap mid-array; the complete objects before that cut are
+ * still source-backed observations, and discarding them retries the same message.
+ */
+function salvageObserverJson(raw: string): z.infer<typeof observerOutput> | undefined {
+  const start = raw.indexOf('{')
+  if (start < 0) return undefined
+  const body = raw.slice(start)
+  const closers = [
+    body,
+    `${body.replace(/,\s*$/u, '')}}`,
+    `${body.replace(/,\s*\{[^}]*$/u, '')}]}`,
+  ]
+  for (const candidate of closers) {
+    try {
+      return observerOutput.parse(JSON.parse(candidate))
+    } catch {
+      // Truncated, or not the observer schema. The caller skips the message.
+    }
+  }
+  return undefined
 }
 
 function totalTokens(entries: readonly SourceEntry[]): number {
@@ -137,16 +304,24 @@ async function runJson(
   }
   const messages: Message[] = [createUserMessage({
     content: [{ type: 'text', text: input }],
-    source: { kind: 'plugin', plugin: '@alisher-amantay/dsh-observational-memory' },
+    source: { kind: OBSERVATIONAL_MEMORY_SOURCE_KIND },
   })]
-  session.append('observational-memory/worker-request', {
+  // The request body is a near-copy of the conversation; persisting it once per
+  // worker call dominated session growth. Price it and keep a digest, and only
+  // write the bodies themselves when payload debugging is on.
+  const digest = createHash('sha256').update(system).update('\u0000').update(input).digest('hex')
+  const request = {
     worker,
     sourceSeqs: [...sourceSeqs],
     route,
-    system,
-    messages,
+    inputTokens,
+    systemBytes: Buffer.byteLength(system, 'utf8'),
+    inputBytes: Buffer.byteLength(input, 'utf8'),
+    digest,
     maxTokens: config.memoryMaxOutputTokens,
-  }, { ignorable: true })
+    ...(config.debugWorkerPayloads === true ? { system, messages } : {}),
+  }
+  appendPluginRecord(session, 'plugin:observational-memory/worker-request', request)
   using requestDeadline = deadline(signal, config.memoryTimeoutMs, 'OBSERVATIONAL_MEMORY_TIMEOUT')
   const options: GenerateOptions = {
     provider: route.provider,
@@ -159,18 +334,37 @@ async function runJson(
   }
   const assembler = new BlockAssembler()
   for await (const chunk of ctx.llm.stream(options)) assembler.push(chunk)
-  if (assembler.finish.kind !== 'stop') throw new Error(`observational-memory ${worker} ended with ${assembler.finish.kind}`)
   const raw = textOf(assembler.blocks())
-  return JSON.parse(raw) as unknown
+  if (assembler.finish.kind !== 'stop') {
+    const error = new Error(`observational-memory ${worker} ended with ${assembler.finish.kind}`) as Error & {
+      raw?: string
+      finishKind?: string
+    }
+    error.raw = raw
+    error.finishKind = assembler.finish.kind
+    throw error
+  }
+  try {
+    return JSON.parse(raw) as unknown
+  } catch (error) {
+    const wrapped = error instanceof Error ? error : new Error(String(error))
+    const failed = wrapped as Error & { raw?: string }
+    failed.raw = raw
+    throw failed
+  }
 }
 
 /**
  * Run one due observer range and append accepted source-backed observations.
+ * A source message larger than the input budget is excerpted, not refused.
+ * A worker failure records a skip for the oldest message and advances through
+ * it, so one checkpoint the model cannot answer cannot freeze the watermark.
  * @param ctx - Agent-scoped context providing the LLM runtime.
  * @param session - Session whose source messages are observed and logged.
  * @param state - Folded memory state before this attempt.
  * @param config - Worker token, route, output, and timeout policy.
  * @param signal - Cancellation for this attempt.
+ * @param force - Observe a remaining range even when it is under `observeAfterTokens`.
  * @returns The attempted source watermark, or `null` when the token clock is not due.
  */
 export async function observeDue(
@@ -179,18 +373,43 @@ export async function observeDue(
   state: ObservationalMemoryState,
   config: ObservationalCompactionConfig,
   signal: AbortSignal,
+  force = false,
 ): Promise<SessionSeq | null> {
   const uncovered = sourceEntries(session, state.observationCoverageSeq)
-  if (totalTokens(uncovered) < config.observeAfterTokens) return null
+  if (uncovered.length === 0) return null
+  if (!force && totalTokens(uncovered) < config.observeAfterTokens) return null
   const selected = takeObserverEntries(uncovered, config.observerChunkMaxTokens, config.memoryInputMaxTokens)
   const coversUpToSeq = selected.at(-1)?.seq
-  if (coversUpToSeq === undefined) {
-    throw new Error('observational-memory observer cannot fit the oldest source message within its input bounds')
+  if (coversUpToSeq === undefined) return null
+  const rendered = renderSource(selected)
+  if (!observerInputFits(selected, config.memoryInputMaxTokens)) {
+    const oldest = uncovered[0]
+    if (oldest === undefined) return null
+    recordUnfittable(session, oldest)
+    return oldest.seq
   }
   const allowed = new Set(selected.map(entry => Number(entry.seq)))
-  const output = observerOutput.parse(await runJson(
-    ctx, session, config, 'observer', OBSERVER_SYSTEM, selected.map(entry => entry.seq), renderSource(selected), signal,
-  ))
+  let output: z.infer<typeof observerOutput>
+  try {
+    const parsed = await runJson(
+      ctx, session, config, 'observer', OBSERVER_SYSTEM, selected.map(entry => entry.seq), rendered, signal,
+    )
+    output = observerOutput.parse(parsed)
+  } catch (error) {
+    if (signal.aborted) throw error
+    if (error instanceof Error && error.message.includes('no configured or routed memory model')) throw error
+    const failed = error as { raw?: string; finishKind?: string }
+    const salvaged = failed.finishKind === 'max-tokens' && typeof failed.raw === 'string'
+      ? salvageObserverJson(failed.raw)
+      : undefined
+    if (salvaged === undefined) {
+      const oldest = selected[0]
+      if (oldest === undefined) throw error
+      recordFailed(session, oldest, error instanceof Error ? error.message : String(error))
+      return oldest.seq
+    }
+    output = salvaged
+  }
   if (output.observations.length === 0) return coversUpToSeq
   const observations: Observation[] = output.observations.flatMap((candidate) => {
     if (!candidate.sourceSeqs.every(seq => allowed.has(seq))) return []
@@ -208,10 +427,10 @@ export async function observeDue(
     }]
   })
   if (observations.length > 0) {
-    session.append('observational-memory/observations-recorded', {
+    appendPluginRecord(session, 'plugin:observational-memory/observations-recorded', {
       observations,
       coversUpToSeq,
-    }, { ignorable: true })
+    })
   }
   return coversUpToSeq
 }
@@ -283,11 +502,11 @@ export async function reflectDue(
   const coversUpToSeq = active.length === pendingActive.length
     ? state.observationCoverageSeq
     : SessionSeq(selectedCoverage)
-  session.append('observational-memory/reflections-recorded', {
+  appendPluginRecord(session, 'plugin:observational-memory/reflections-recorded', {
     reflections,
     processedObservationIds: active.map(observation => observation.id),
     coversUpToSeq,
-  }, { ignorable: true })
+  })
   if (!dropperBehind) return true
   const dropperActive: Observation[] = []
   const ledgerIndexes = new Map(state.observations.map((observation, index) => [observation.id, index]))
@@ -296,12 +515,12 @@ export async function reflectDue(
     : ledgerIndexes.get(state.dropperCursorObservationId) ?? -1
   const dropperCandidates = allActive.filter(observation => (ledgerIndexes.get(observation.id) ?? -1) > cursorIndex)
   if (dropperCandidates.length === 0) {
-    session.append('observational-memory/observations-dropped', {
+    appendPluginRecord(session, 'plugin:observational-memory/observations-dropped', {
       observationIds: [],
       reviewedObservationIds: [],
       nextCursorObservationId: null,
       coversUpToSeq: state.observationCoverageSeq,
-    }, { ignorable: true })
+    })
     return true
   }
   for (const observation of dropperCandidates) {
@@ -336,11 +555,11 @@ export async function reflectDue(
   const completedDropperCycle = dropperActive.at(-1)?.id === dropperCandidates.at(-1)?.id
   const reviewedCoverage = dropperActive.flatMap(observation => observation.sourceSeqs)
     .reduce((latest, seq) => Math.max(latest, Number(seq)), Number(state.dropperCoverageSeq ?? 0))
-  session.append('observational-memory/observations-dropped', {
+  appendPluginRecord(session, 'plugin:observational-memory/observations-dropped', {
     observationIds,
     reviewedObservationIds: dropperActive.map(observation => observation.id),
     nextCursorObservationId: completedDropperCycle ? null : dropperActive.at(-1)?.id ?? null,
     coversUpToSeq: completedDropperCycle ? state.observationCoverageSeq : SessionSeq(reviewedCoverage),
-  }, { ignorable: true })
+  })
   return true
 }

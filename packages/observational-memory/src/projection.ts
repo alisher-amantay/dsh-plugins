@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import type { ProjectionDefinition } from '@deepseek-ai/dsh-session-projection'
-import type { ObservationalMemoryState, Observation, Reflection } from './types.ts'
+import { pluginRecordOf } from '@deepseek-ai/dsh-session'
+import type { SessionSeq } from '@deepseek-ai/dsh-session'
+import type { ObservationalMemoryState, Observation, ObservationId, Reflection } from './types.ts'
 
 const observationSchema = z.object({
   id: z.string(),
@@ -29,6 +31,26 @@ const stateSchema = z.object({
   dropperCoverageSeq: z.number().int().nonnegative().nullable(),
 }).strict() as unknown as z.ZodType<ObservationalMemoryState>
 
+const seqSchema = z.number().int().nonnegative()
+
+const observationsRecorded = z.object({
+  observations: z.array(observationSchema),
+  coversUpToSeq: seqSchema,
+}).strict() as unknown as z.ZodType<{ observations: Observation[]; coversUpToSeq: SessionSeq }>
+
+const reflectionsRecorded = z.object({
+  reflections: z.array(reflectionSchema),
+  processedObservationIds: z.array(z.string()),
+  coversUpToSeq: seqSchema,
+}).strict() as unknown as z.ZodType<{ reflections: Reflection[]; processedObservationIds: ObservationId[]; coversUpToSeq: SessionSeq }>
+
+const observationsDropped = z.object({
+  observationIds: z.array(z.string()),
+  reviewedObservationIds: z.array(z.string()),
+  nextCursorObservationId: z.string().nullable(),
+  coversUpToSeq: seqSchema,
+}).strict() as unknown as z.ZodType<{ observationIds: ObservationId[]; nextCursorObservationId: ObservationId | null; coversUpToSeq: SessionSeq }>
+
 /** Empty branch-local observational-memory ledger projection. */
 export const EMPTY_MEMORY_STATE: ObservationalMemoryState = {
   observations: [],
@@ -47,32 +69,39 @@ export const observationalMemoryProjection: ProjectionDefinition<'observationalM
   stateSchema,
   init: () => EMPTY_MEMORY_STATE,
   apply(state, event) {
-    if (event.type === 'observational-memory/observations-recorded') {
-      return {
-        ...state,
-        observations: [...state.observations, ...event.data.observations],
-        observationCoverageSeq: event.data.coversUpToSeq,
+    const record = pluginRecordOf(event)
+    switch (record?.type) {
+      case 'plugin:observational-memory/observations-recorded': {
+        const data = observationsRecorded.parse(record.data)
+        return {
+          ...state,
+          observations: [...state.observations, ...data.observations],
+          observationCoverageSeq: data.coversUpToSeq,
+        }
       }
-    }
-    if (event.type === 'observational-memory/reflections-recorded') {
-      return {
-        ...state,
-        reflections: [...state.reflections, ...event.data.reflections],
-        reflectedObservationIds: [...state.reflectedObservationIds, ...event.data.processedObservationIds],
-        reflectionCoverageSeq: event.data.coversUpToSeq,
+      case 'plugin:observational-memory/reflections-recorded': {
+        const data = reflectionsRecorded.parse(record.data)
+        return {
+          ...state,
+          reflections: [...state.reflections, ...data.reflections],
+          reflectedObservationIds: [...state.reflectedObservationIds, ...data.processedObservationIds],
+          reflectionCoverageSeq: data.coversUpToSeq,
+        }
       }
-    }
-    if (event.type === 'observational-memory/observations-dropped') {
-      return {
-        ...state,
-        droppedObservationIds: [...state.droppedObservationIds, ...event.data.observationIds],
-        dropperCursorObservationId: event.data.nextCursorObservationId,
-        dropperCoverageSeq: event.data.coversUpToSeq,
+      case 'plugin:observational-memory/observations-dropped': {
+        const data = observationsDropped.parse(record.data)
+        return {
+          ...state,
+          droppedObservationIds: [...state.droppedObservationIds, ...data.observationIds],
+          dropperCursorObservationId: data.nextCursorObservationId,
+          dropperCoverageSeq: data.coversUpToSeq,
+        }
       }
+      default:
+        return state
     }
-    return state
   },
-  stateVersion: 2,
+  stateVersion: 3,
 }
 
 /**
