@@ -2,16 +2,23 @@
   "name": "@alisheramantay/dsh-plugins-workspace",
   "version": "0.1.0",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "type": "module",
-  "packageManager": "pnpm@11.7.0",
-  "engines": { "node": "^22.19.0 || >=24.0.0" },
+  "packageManager": "pnpm@11.28.5",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
   "scripts": {
     "build": "pnpm --recursive --if-present run build",
     "test": "vitest run",
+    "presets": "node build/preset-overrides.ts",
+    "vendor": "node build/vendor-ui-chat.ts",
+    "load": "node build/load-check.ts",
     "pack:check": "pnpm --recursive --if-present run pack:check",
     "publint": "for dir in packages/*; do publint \"$dir\" || exit; done",
-    "check": "pnpm run build && pnpm run test && pnpm run pack:check && pnpm run publint"
+    "check": "pnpm run build && pnpm run load && pnpm run test && pnpm run pack:check && pnpm run publint"
   },
   "devDependencies": {
     "@types/node": "^26.0.1",

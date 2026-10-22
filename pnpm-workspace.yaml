@@ -6,20 +6,57 @@ overrides:
   '@deepseek-ai/cordis-plugin-loader': link:../deepseek-harness/vendor/loader
   '@deepseek-ai/dsh-agent': link:../deepseek-harness/packages/core/agent
   '@deepseek-ai/dsh-agent-loop': link:../deepseek-harness/packages/core/agent-loop
+  '@deepseek-ai/dsh-agent-loop-testkit': link:../deepseek-harness/packages/test-support/agent-loop-testkit
+  '@deepseek-ai/dsh-api-remotes': link:../deepseek-harness/packages/api/remotes
+  '@deepseek-ai/dsh-api-session-controller': link:../deepseek-harness/packages/api/session-controller
+  '@deepseek-ai/dsh-api-workspace-controller': link:../deepseek-harness/packages/api/workspace-controller
   '@deepseek-ai/dsh-app-boot': link:../deepseek-harness/packages/boot/app-boot
+  '@deepseek-ai/dsh-attachment': link:../deepseek-harness/packages/attachment/attachment
   '@deepseek-ai/dsh-brand': link:../deepseek-harness/packages/util/brand
+  '@deepseek-ai/dsh-client-locale': link:../deepseek-harness/packages/client/locale
+  '@deepseek-ai/dsh-client-product-analytics': link:../deepseek-harness/packages/client/product-analytics
+  '@deepseek-ai/dsh-client-store': link:../deepseek-harness/packages/client/store
+  '@deepseek-ai/dsh-client-test-runtime': link:../deepseek-harness/packages/test-support/client-runtime
+  '@deepseek-ai/dsh-client-ui-approval': link:../deepseek-harness/packages/client/ui-approval
+  '@deepseek-ai/dsh-client-ui-chat': link:../deepseek-harness/packages/client/ui-chat
+  '@deepseek-ai/dsh-client-ui-conversation': link:../deepseek-harness/packages/client/ui-conversation
+  '@deepseek-ai/dsh-client-ui-input-trigger': link:../deepseek-harness/packages/client/ui-input-trigger
+  '@deepseek-ai/dsh-client-ui-layout': link:../deepseek-harness/packages/client/ui-layout
+  '@deepseek-ai/dsh-client-ui-primitives': link:../deepseek-harness/packages/client/ui-primitives
+  '@deepseek-ai/dsh-client-ui-renderer': link:../deepseek-harness/packages/client/ui-renderer
+  '@deepseek-ai/dsh-client-ui-session': link:../deepseek-harness/packages/client/ui-session
+  '@deepseek-ai/dsh-client-ui-settings': link:../deepseek-harness/packages/client/ui-settings
+  '@deepseek-ai/dsh-client-ui-sidebar-browser': link:../deepseek-harness/packages/client/ui-sidebar-browser
+  '@deepseek-ai/dsh-client-ui-sidebar-documentpreview': link:../deepseek-harness/packages/client/ui-sidebar-documentpreview
+  '@deepseek-ai/dsh-client-ui-sidebar-right': link:../deepseek-harness/packages/client/ui-sidebar-right
+  '@deepseek-ai/dsh-client-ui-slots': link:../deepseek-harness/packages/client/ui-slots
+  '@deepseek-ai/dsh-client-ui-workspace': link:../deepseek-harness/packages/client/ui-workspace
   '@deepseek-ai/dsh-commands': link:../deepseek-harness/packages/interaction/commands
+  '@deepseek-ai/dsh-compaction': link:../deepseek-harness/packages/compaction/compaction
   '@deepseek-ai/dsh-compaction-basic': link:../deepseek-harness/packages/compaction/compaction-basic
+  '@deepseek-ai/dsh-fs': link:../deepseek-harness/packages/fs/fs
   '@deepseek-ai/dsh-goal': link:../deepseek-harness/packages/goal/goal
   '@deepseek-ai/dsh-jobs': link:../deepseek-harness/packages/jobs/jobs
   '@deepseek-ai/dsh-jobs-local': link:../deepseek-harness/packages/jobs/jobs-local
   '@deepseek-ai/dsh-llm': link:../deepseek-harness/packages/llm/llm
+  '@deepseek-ai/dsh-llm-retry': link:../deepseek-harness/packages/llm/llm-retry
+  '@deepseek-ai/dsh-sandbox': link:../deepseek-harness/packages/sandbox/sandbox
   '@deepseek-ai/dsh-session': link:../deepseek-harness/packages/core/session
   '@deepseek-ai/dsh-session-projection': link:../deepseek-harness/packages/session/session-projection
+  '@deepseek-ai/dsh-session-stats': link:../deepseek-harness/packages/session/session-stats
+  '@deepseek-ai/dsh-session-turn-outline': link:../deepseek-harness/packages/session/session-turn-outline
+  '@deepseek-ai/dsh-settings': link:../deepseek-harness/packages/settings/settings
   '@deepseek-ai/dsh-system-prompt': link:../deepseek-harness/packages/core/system-prompt
   '@deepseek-ai/dsh-timeout': link:../deepseek-harness/packages/util/timeout
   '@deepseek-ai/dsh-token-meter': link:../deepseek-harness/packages/llm/token-meter
   '@deepseek-ai/dsh-tools': link:../deepseek-harness/packages/core/tools
+  '@deepseek-ai/dsh-typert-protocol': link:../deepseek-harness/packages/typert/protocol
+  '@deepseek-ai/dsh-util-values': link:../deepseek-harness/packages/util/values
+  '@deepseek-ai/dsh-util-workspace-path': link:../deepseek-harness/packages/util/workspace-path
+  '@deepseek-ai/dsh-web-app': link:../deepseek-harness/packages/bundle/web-app
+  '@deepseek-ai/dsh-workspace': link:../deepseek-harness/packages/workspace/workspace
+  '@deepseek-ai/schemastery': link:../deepseek-harness/vendor/schemastery
 
-onlyBuiltDependencies:
-  - '@napi-rs/canvas'
+allowBuilds:
+  '@napi-rs/canvas': true
+  koffi: true
