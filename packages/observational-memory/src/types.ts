@@ -42,39 +42,67 @@ export interface ObservationalMemoryState {
   readonly dropperCoverageSeq: SessionSeq | null
 }
 
-/** Exact auxiliary request recorded before one memory worker dispatch. */
+/**
+ * Auxiliary request recorded before one memory worker dispatch.
+ *
+ * The record is written once per worker call — 2,809 times in one 7-day session
+ * — and the request body is a near-copy of the conversation (mean 242 KB, peak
+ * 331 KB). Keeping the body inline made these records the largest single
+ * consumer of session storage, so the durable record carries the pricing
+ * metadata and a content digest, and the bodies are kept only when
+ * `debugWorkerPayloads` is enabled.
+ */
 export interface ObservationalMemoryWorkerRequest {
   readonly worker: 'observer' | 'reflector' | 'dropper'
   readonly sourceSeqs: readonly SessionSeq[]
   readonly route: { readonly provider: string; readonly model: string }
-  readonly system: string
-  readonly messages: readonly Message[]
+  /** Estimated tokens of the exact system-and-message input sent. */
+  readonly inputTokens: number
+  /** UTF-8 length of the system prompt sent. */
+  readonly systemBytes: number
+  /** UTF-8 length of the rendered input sent. */
+  readonly inputBytes: number
+  /** SHA-256 of the exact system and input text, for correlation with debug output. */
+  readonly digest: string
   readonly maxTokens: number
+  /** Exact system prompt; present only when `debugWorkerPayloads` is enabled. */
+  readonly system?: string
+  /** Exact messages; present only when `debugWorkerPayloads` is enabled. */
+  readonly messages?: readonly Message[]
 }
 
-/** Observational-memory policy layered over the regular compaction backend. */
+/** Message source kind of every message this package builds; V3 `plugin` sources migrate to the same kind. */
+export const OBSERVATIONAL_MEMORY_SOURCE_KIND = 'plugin:@alisher-amantay/dsh-observational-memory'
+
+declare module '@deepseek-ai/dsh-llm' {
+  interface MessageSourceMap {
+    'plugin:@alisher-amantay/dsh-observational-memory': { kind: typeof OBSERVATIONAL_MEMORY_SOURCE_KIND }
+  }
+}
+
+/** Durable observational-memory records; V3 `observational-memory/*` events migrate to these names. */
 declare module '@deepseek-ai/dsh-session/types' {
-  interface SessionEventMap {
+  interface PluginRecordMap {
     /** Non-empty source-backed observations accepted from one bounded source range. */
-    'observational-memory/observations-recorded': {
+    'plugin:observational-memory/observations-recorded': {
       observations: Observation[]
       coversUpToSeq: SessionSeq
     }
     /** One bounded reflection batch, including the observations reviewed by that batch. */
-    'observational-memory/reflections-recorded': {
+    'plugin:observational-memory/reflections-recorded': {
       reflections: Reflection[]
       processedObservationIds: ObservationId[]
       coversUpToSeq: SessionSeq
     }
     /** One bounded dropper batch and any tombstones accepted from it. */
-    'observational-memory/observations-dropped': {
+    'plugin:observational-memory/observations-dropped': {
       observationIds: ObservationId[]
       reviewedObservationIds: ObservationId[]
       nextCursorObservationId: ObservationId | null
       coversUpToSeq: SessionSeq
     }
     /** Exact auxiliary request dispatched to one observational-memory worker. */
-    'observational-memory/worker-request': ObservationalMemoryWorkerRequest
+    'plugin:observational-memory/worker-request': ObservationalMemoryWorkerRequest
   }
 }
 
@@ -108,4 +136,6 @@ export interface ObservationalCompactionConfig extends BasicCompactionConfig {
   readonly memoryTimeoutMs: number
   /** Maximum UTF-8 bytes returned by recall and memory-view surfaces. */
   readonly maxViewBytes: number
+  /** Record full worker request bodies in the session log; costly, for debugging only. */
+  readonly debugWorkerPayloads?: boolean
 }
