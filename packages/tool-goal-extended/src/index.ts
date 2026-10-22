@@ -9,8 +9,15 @@ import z from '@deepseek-ai/schemastery'
 import { GoalId } from '@deepseek-ai/dsh-goal'
 import type { GoalRef, GoalView } from '@deepseek-ai/dsh-goal'
 import { JobId } from '@deepseek-ai/dsh-jobs'
-import type { Agent } from '@deepseek-ai/dsh-agent'
+import type { SessionId } from '@deepseek-ai/dsh-session'
 import { boundContextSummary, createUserMessage, HarnessError } from '@deepseek-ai/dsh-llm'
+import type { ContextFormed } from '@deepseek-ai/dsh-llm'
+declare module '@deepseek-ai/dsh-llm' {
+  interface MessageSourceMap {
+    'tool-goal': { kind: 'tool-goal' } & ContextFormed
+  }
+}
+
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import type { GenericCallView } from '@deepseek-ai/dsh-tools'
 import {
@@ -50,15 +57,11 @@ type UpdateAction = 'edit' | 'pause' | 'resume' | 'complete' | 'blocked'
 const UPDATE_ACTIONS: UpdateAction[] = ['edit', 'pause', 'resume', 'complete', 'blocked']
 
 const CREATE_DESCRIPTION =
-  'Create one persisted same-session completion goal when the current direct human request '
-  + 'is a long-running objective that should continue across autonomous goal rounds. You may '
-  + 'infer that intent without requiring the user to say "create a goal". Do not use this for '
-  + 'trivial single-turn work. Execution rejects non-human and subagent authority.'
+  'Create a persisted goal that keeps this session working across automatic continuation rounds. '
+  + 'Use it when the direct human request is a long-running objective, even if the user did not say "goal"; '
+  + 'not for single-turn work.'
 
-const GET_DESCRIPTION =
-  'Read the current same-session goal, including its exact id/revision, objective, phase, completed '
-  + 'continuation rounds, round limit, blocker reason when present, and whether another continuation is armed. '
-  + 'Call this before updating a goal.'
+const GET_DESCRIPTION = 'Read the current session goal, including the id and revision that update_goal requires.'
 
 /** Canonical goal-tool output, matching the existing compact Native JSON. */
 type GoalToolValue =
@@ -118,10 +121,8 @@ const GOAL_VALUE_SCHEMA = {
 
 /** Render policy guidance with its deployment-selected blocked threshold. */
 function guidance(blockedAfter: number): string {
-  return 'Use goal tools for one long-running completion objective in the current session. '
-    + 'create_goal may infer goal intent from a direct human request in any language; do not '
-    + 'create a goal for routine single-turn work. Call get_goal before update_goal and copy its '
-    + 'exact goal_id and revision. After session resume or fork, an active goal is disarmed: when '
+  return 'create_goal may infer goal intent from a direct human request in any language. '
+    + 'After session resume or fork, an active goal is disarmed: when '
     + 'a human asks to continue or resume in any wording or language, use update_goal action '
     + 'resume to rearm it. When a background job is the only remaining dependency, use '
     + 'defer_goal_until_job once instead of polling; its completion will rearm the exact suspended '
@@ -203,12 +204,14 @@ function present(title: string, kind: 'read' | 'other', rawInput?: unknown): Gen
 /** Register the three Codex-shaped goal tools and their shared policy section. */
 export function apply(ctx: Context, config: Config): void {
   const resolved = resolveConfig(config)
-  const deferred = new Map<Agent, DeferredGoal>()
+  const deferred = new Map<SessionId, DeferredGoal>()
 
-  function resumeDeferred(owner: Agent, wake: DeferredGoal, reason: string): void {
+  function resumeDeferred(owner: SessionId, wake: DeferredGoal, reason: string): void {
     try {
-      const current = ctx.goals.get(owner)
-      if (current === undefined
+      const agent = ctx.agents.get(owner)
+      const current = agent === undefined ? undefined : ctx.goals.get(agent)
+      if (agent === undefined
+        || current === undefined
         || current.id !== wake.goal.id
         || current.revision !== wake.goal.revision
         || current.phase !== 'active'
@@ -216,7 +219,7 @@ export function apply(ctx: Context, config: Config): void {
         deferred.delete(owner)
         return
       }
-      ctx.goals.resume(owner, wake.goal)
+      ctx.goals.resume(agent, wake.goal)
       deferred.delete(owner)
     } catch (error: unknown) {
       const detail = error instanceof Error ? error.message : String(error)
@@ -224,11 +227,11 @@ export function apply(ctx: Context, config: Config): void {
     }
   }
 
-  ctx.jobs.onJobDone((snapshot, owner) => {
-    if (owner === undefined) return
-    const wake = deferred.get(owner)
-    if (wake === undefined || wake.jobId !== snapshot.id) return
-    resumeDeferred(owner, wake, `after job "${snapshot.id}"`)
+  ctx.jobs.events.subscribe({ owners: 'scope' }, (event) => {
+    if (event.type !== 'settled' || event.job.owner === undefined) return
+    const wake = deferred.get(event.job.owner)
+    if (wake === undefined || wake.jobId !== event.job.id) return
+    resumeDeferred(event.job.owner, wake, `after job "${event.job.id}"`)
   })
 
   ctx.effect(() => () => {
@@ -269,6 +272,7 @@ export function apply(ctx: Context, config: Config): void {
       const execution = goalToolExecution(ctx, exec)
       completionAuthority(ctx, execution)
       const ref = goalRef(args.goal_id, args.revision)
+      const owner = execution.agent.id
       const current = ctx.goals.get(execution.agent)
       if (current === undefined || current.id !== ref.id || current.revision !== ref.revision) {
         throw new HarnessError('goal_id and revision must match the exact current goal', 'GOAL_TOOL_STALE_UPDATE')
@@ -276,11 +280,11 @@ export function apply(ctx: Context, config: Config): void {
       if (current.phase !== 'active' || current.activation !== 'armed') {
         throw new HarnessError('only an active, armed goal can be deferred', 'GOAL_TOOL_INVALID_DEFER')
       }
-      if (deferred.has(execution.agent)) {
+      if (deferred.has(owner)) {
         throw new HarnessError('this goal already has a blocking background job', 'GOAL_TOOL_INVALID_DEFER')
       }
       const id = jobId(args.job_id)
-      const job = ctx.jobs.get(id, execution.agent)
+      const job = ctx.jobs.get(id, owner)
       if (job.status !== 'running') {
         throw new HarnessError(`job "${id}" is already ${job.status}`, 'GOAL_TOOL_INVALID_DEFER')
       }
@@ -289,10 +293,10 @@ export function apply(ctx: Context, config: Config): void {
         throw new HarnessError('current goal disappeared before it could be deferred', 'GOAL_TOOL_STALE_UPDATE')
       }
       const wake = { jobId: id, goal: ref }
-      deferred.set(execution.agent, wake)
-      const latest = ctx.jobs.get(id, execution.agent)
+      deferred.set(owner, wake)
+      const latest = ctx.jobs.get(id, owner)
       if (latest.status !== 'running') {
-        resumeDeferred(execution.agent, wake, `after job "${id}" settled during deferral`)
+        resumeDeferred(owner, wake, `after job "${id}" settled during deferral`)
       }
       return Promise.resolve(goalValue(ctx.goals.get(execution.agent)))
     },
@@ -328,10 +332,7 @@ export function apply(ctx: Context, config: Config): void {
 
   ctx.tools.register(defineTool({
     name: 'update_goal',
-    description: 'Update the exact current goal revision. edit, pause, and resume require a direct '
-      + 'top-level human request. During an automatic continuation of the current goal, complete '
-      + 'and blocked are also allowed. blocked is rejected before the configured minimum round count; the model remains '
-      + 'responsible for judging that the same condition persisted across those rounds and must explain it in blocked_reason.',
+    description: 'Update the current goal.',
     parameters: {
       goal_id: { type: 'string', required: true, description: 'Exact id returned by get_goal.' },
       revision: { type: 'number', required: true, description: 'Exact positive revision returned by get_goal.' },
@@ -339,13 +340,14 @@ export function apply(ctx: Context, config: Config): void {
         type: 'string',
         required: true,
         enum: UPDATE_ACTIONS,
-        description: 'edit | pause | resume | complete | blocked',
+        description: 'edit, pause, and resume require a direct top-level human request. complete and blocked are also allowed '
+          + 'during an automatic continuation of this goal; blocked is rejected before the configured minimum round count.',
       },
       objective: { type: 'string', description: 'Replacement objective; valid only with action edit.' },
       max_goal_rounds: { type: 'number', description: 'Replacement cap; valid only with action edit.' },
       blocked_reason: {
         type: 'string',
-        description: 'Concrete blocking condition; required only with action blocked.',
+        description: 'Required only with action blocked: the concrete condition that persisted across rounds and blocks progress.',
       },
     },
     output: GOAL_OUTPUT,
@@ -411,8 +413,7 @@ export function apply(ctx: Context, config: Config): void {
             ? renderWrapupContext(goal.objective)
             : renderWrapupContext(goal.objective, args.blocked_reason as string),
           source: {
-            kind: 'plugin',
-            plugin: 'tool-goal',
+            kind: 'tool-goal',
             form: 'notice',
             summary: boundContextSummary(`${args.action as string}: ${goal.objective}`),
           },

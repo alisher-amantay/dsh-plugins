@@ -5,15 +5,22 @@
   "publishConfig": { "access": "public" },
   "repository": { "type": "git", "url": "git+https://github.com/alisher-amantay/dsh-plugins.git", "directory": "packages/custom-bundle" },
   "type": "module",
-  "main": "lib/index.js",
-  "types": "lib/types/index.d.ts",
-  "exports": { ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" }, "./cordis.patch.yml": "./cordis.patch.yml", "./presets/*": "./presets/*", "./package.json": "./package.json" },
-  "files": ["lib/index.js", "lib/types/**/*.d.ts", "cordis.patch.yml", "presets", "README*.md"],
-  "scripts": { "build": "tsc -b && tsdown", "pack:check": "pnpm pack --dry-run" },
+  "exports": { "./cordis.patch.yml": "./cordis.patch.yml", "./presets/*.patch.yml": "./presets/*.patch.yml", "./package.json": "./package.json" },
+  "files": ["cordis.patch.yml", "presets/standard.patch.yml", "presets/ptc.patch.yml", "presets/cordis.patch.yml", "presets/weak-strong-review.patch.yml", "README*.md"],
+  "scripts": { "pack:check": "pnpm pack --dry-run" },
   "license": "MIT",
-  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
+  "dsh": {
+    "bundle": {
+      "patch": [
+        "./cordis.patch.yml",
+        "./presets/standard.patch.yml",
+        "./presets/ptc.patch.yml",
+        "./presets/cordis.patch.yml",
+        "./presets/weak-strong-review.patch.yml"
+      ]
+    }
+  },
   "dependencies": {
-    "@deepseek-ai/dsh-agent-presets": ">=0.1.2-alpha.5 <0.2.0",
     "@alisheramantay/dsh-client-chat-extended": "workspace:^",
     "@alisheramantay/dsh-client-goal-extended": "workspace:^",
     "@alisheramantay/dsh-goal-round-driver-delayed": "workspace:^",
@@ -21,5 +28,5 @@
     "@alisheramantay/dsh-tool-goal-extended": "workspace:^",
     "@alisheramantay/dsh-tool-pdf": "workspace:^"
   },
-  "peerDependencies": { "@deepseek-ai/cordis": "^4.0.2" }
+  "peerDependencies": { "@deepseek-ai/cordis": "~4.0.5-alpha.1", "@deepseek-ai/dsh-web-app": ">=0.2.1-alpha.2 <0.2.2" }
 }

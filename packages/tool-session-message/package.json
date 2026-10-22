@@ -1,0 +1,30 @@
+{
+  "name": "@alisheramantay/dsh-tool-session-message",
+  "description": "Agent tools to list, create and rename Sessions and send a prompt to another Session on the user's behalf",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": ">=0.2.1-alpha.2 <0.2.2"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": ">=0.2.1-alpha.2 <0.2.2"
+  }
+}

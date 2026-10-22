@@ -1,72 +1,85 @@
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
-import { fileURLToPath, pathToFileURL } from 'node:url'
-import { Context } from '@deepseek-ai/cordis'
-import Loader from '@deepseek-ai/cordis-plugin-loader'
-import Include, { applyEntryPatches } from '@deepseek-ai/cordis-plugin-include'
-import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
-import CustomAgentPresets from '../src/index.ts'
-import { parse } from 'yaml'
+import { fileURLToPath } from 'node:url'
+import { applyEntryPatches, type EntryOptions, type PatchOptions } from '@deepseek-ai/cordis-plugin-include'
 import { describe, expect, it } from 'vitest'
+import { parsePatch, readShippedPreset, renderBundlePresets, type ShippedPresetId } from '../../../build/preset-overrides.ts'
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const shippedIds: ShippedPresetId[] = ['standard', 'ptc', 'minimal', 'cordis']
 
 function read(relativePath: string): string {
   return readFileSync(resolve(packageRoot, relativePath), 'utf8')
 }
 
+function apply(rows: EntryOptions[], source: string): EntryOptions[] {
+  const warnings: string[] = []
+  const result = applyEntryPatches(rows, parsePatch(source) as PatchOptions[], message => warnings.push(message))
+  expect(warnings).toEqual([])
+  return result
+}
+
+const hostRows: EntryOptions[] = [
+  { id: 'goal-round-driver', name: '@deepseek-ai/dsh-goal-round-driver' },
+  { id: 'ui-chat', name: '@deepseek-ai/dsh-client-ui-chat' },
+  { id: 'ui-goal', name: '@deepseek-ai/dsh-client-ui-goal' },
+]
+
+function composed(): EntryOptions[] {
+  const manifest = JSON.parse(read('package.json')) as { dsh: { bundle: { patch: string[] } } }
+  let rows = shippedIds.reduce<EntryOptions[]>((acc, id) => apply(acc, readShippedPreset(id)), hostRows)
+  for (const patch of manifest.dsh.bundle.patch) rows = apply(rows, read(patch))
+  return rows
+}
+
+function preset(rows: EntryOptions[], id: string): { id: string; order: number; plugins: EntryOptions[] } {
+  return rows.find(entry => entry.id === `preset-${id}`)!.config as { id: string; order: number; plugins: EntryOptions[] }
+}
+
+function flatten(entries: EntryOptions[]): EntryOptions[] {
+  return entries.flatMap(entry => entry.group && Array.isArray(entry.config) ? [entry, ...flatten(entry.config)] : [entry])
+}
+
 describe('custom distribution composition', () => {
-  it.each(['standard', 'ptc', 'cordis'])('mounts observational memory in %s mode', (preset) => {
-    const composition = read(`presets/${preset}/agent.cordis.yml`)
-    expect(composition).toContain("name: '@alisher-amantay/dsh-observational-memory'")
-    expect(composition).toContain("name: '@alisheramantay/dsh-tool-goal-extended'")
-    expect(composition).not.toContain("name: '@deepseek-ai/dsh-compaction-basic'")
-  })
-
-  it('keeps minimal mode free of observational memory', () => {
-    const composition = read('presets/minimal/agent.cordis.yml')
-    expect(composition).not.toContain('@alisheramantay/')
-    expect(composition).not.toContain('observational-memory')
-  })
-
-  it('publishes the replacement roster as the four built-in mode ids', async () => {
-    const ctx = new Context()
-    ctx.baseUrl = pathToFileURL(resolve(packageRoot, 'package.json')).href
-    await ctx.plugin(Loader)
-    ctx.loader.builtins.include = Include
-    await ctx.plugin(SessionProjectionRegistry)
-    await ctx.plugin(CustomAgentPresets, {
-      default: 'standard',
-      roots: [],
-      includeShippedRoot: true,
-      includeUserRoot: false,
-    })
-
-    try {
-      const presets = await ctx.agentPresets.list()
-      expect(presets.map(preset => preset.id).sort()).toEqual(['cordis', 'minimal', 'ptc', 'standard'])
-      expect(presets.every(preset => preset.trust === 'system')).toBe(true)
-      expect(presets.every(preset => preset.path.startsWith(resolve(packageRoot, 'presets')))).toBe(true)
-    } finally {
-      await ctx.fiber.dispose()
+  it('ships declarations regenerated from the current Harness presets', () => {
+    for (const [file, yaml] of renderBundlePresets('custom-bundle')) {
+      expect(read(`presets/${file}`), `${file} is stale; run node build/preset-overrides.ts`).toBe(yaml)
     }
   })
 
-  it('disables stock global rows before inserting replacements', () => {
-    const patches = parse(read('cordis.patch.yml'))
-    const base = [
-      { id: 'agent-presets', name: '@deepseek-ai/dsh-agent-presets' },
-      { id: 'goal-round-driver', name: '@deepseek-ai/dsh-goal-round-driver' },
-      { id: 'ui-chat', name: '@deepseek-ai/dsh-client-ui-chat' },
-      { id: 'ui-goal', name: '@deepseek-ai/dsh-client-ui-goal' },
-    ]
-    const warnings: string[] = []
-    const result = applyEntryPatches(base, patches, message => warnings.push(message))
+  it.each(['standard', 'ptc', 'cordis', 'weak-strong-review'])('mounts observational memory and extended goals in %s', (id) => {
+    const names = flatten(preset(composed(), id).plugins).map(entry => entry.name)
+    expect(names).toContain('@alisher-amantay/dsh-observational-memory')
+    expect(names).toContain('@alisheramantay/dsh-tool-goal-extended')
+    expect(names).not.toContain('@deepseek-ai/dsh-compaction-basic')
+    expect(names).not.toContain('@deepseek-ai/dsh-tool-goal')
+  })
 
-    expect(warnings).toEqual([])
-    expect(result.filter(entry => entry.disabled)).toHaveLength(4)
-    expect(result.map(entry => entry.name)).toEqual(expect.arrayContaining([
-      '@alisheramantay/dsh-custom-bundle',
+  it('keeps minimal mode free of bundle plugins', () => {
+    const names = flatten(preset(composed(), 'minimal').plugins).map(entry => entry.name)
+    expect(names.filter(name => name?.startsWith('@alisher'))).toEqual([])
+  })
+
+  it('pins the weak/strong delegation pair in weak-strong-review mode', () => {
+    const review = preset(composed(), 'weak-strong-review')
+    expect(review.order).toBe(5)
+    const entries = flatten(review.plugins)
+    const delegate = (toolName: string) => entries.find(entry => (entry.config as { toolName?: string } | undefined)?.toolName === toolName)
+    expect(delegate('implement')?.config).toMatchObject({ agentOptions: { provider: 'fireworks', reasoningEffort: 'xhigh' } })
+    expect(delegate('review')?.config).toMatchObject({ agentOptions: { provider: 'openai', reasoningEffort: 'high' } })
+    expect(entries.find(entry => entry.id === 'persona')?.config).toMatchObject({ prefix: expect.stringContaining('review-orchestrator') })
+  })
+
+  it('keeps the shipped preset ids beside the bundle preset', () => {
+    expect(composed().filter(entry => entry.id?.startsWith('preset-')).map(entry => preset(composed(), entry.id!.slice('preset-'.length)).id))
+      .toEqual(['standard', 'ptc', 'minimal', 'cordis', 'weak-strong-review'])
+  })
+
+  it('disables stock global rows before inserting replacements', () => {
+    const rows = composed()
+    expect(rows.filter(entry => entry.disabled).map(entry => entry.id)).toEqual(['goal-round-driver', 'ui-chat', 'ui-goal'])
+    expect(rows.find(entry => entry.id === 'goal-round-driver-delayed')?.config).toEqual({ continuationDelayMs: 15000 })
+    expect(rows.map(entry => entry.name)).toEqual(expect.arrayContaining([
       '@alisheramantay/dsh-goal-round-driver-delayed',
       '@alisheramantay/dsh-client-chat-extended',
       '@alisheramantay/dsh-client-goal-extended',

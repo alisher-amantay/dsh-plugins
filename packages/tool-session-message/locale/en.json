@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Session Manager",
+    "description": "Lets the agent list, start and rename Sessions and send them a message on the user's behalf."
+  }
+}
