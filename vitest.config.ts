@@ -68,7 +68,8 @@ export default defineConfig({
   plugins: [standardDecoratorPlugin()],
   test: {
     environment: 'node',
-    include: ['packages/*/tests/**/*.spec.{ts,tsx}'],
+    include: ['packages/*/tests/**/*.spec.{ts,tsx}', 'tests/**/*.spec.ts'],
+    setupFiles: ['./build/test-dom-environment.ts'],
     pool: 'forks',
     execArgv: process.allowedNodeEnvironmentFlags.has('--webstorage') ? ['--no-webstorage'] : [],
   },
